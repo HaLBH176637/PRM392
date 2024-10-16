@@ -49,13 +49,15 @@ Easy and fast!" />
 
             <androidx.appcompat.widget.AppCompatButton
                 style="@android:style/Widget.Button"
-                android:id="@+id/button"
+                android:id="@+id/startBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="32dp"
                 android:background="@drawable/orange_bg"
                 android:textColor="@color/white"
-                android:text="Get Started 😍" />
+                android:text="Get Started 😍"
+                android:textSize="18sp"/>
+
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
