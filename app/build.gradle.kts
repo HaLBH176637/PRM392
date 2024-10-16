@@ -1,16 +1,15 @@
 plugins {
-    id("com.android.application") // Thay đổi từ alias nếu bạn chưa sử dụng 'libs'
-    id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt") // Nếu bạn cần sử dụng Kapt
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
-    namespace = "com.example.shopping"
+    namespace = "com.example.ticketbooking"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.shopping"
-        minSdk = 24
+        applicationId = "com.example.ticketbooking"
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -27,49 +26,29 @@ android {
             )
         }
     }
-
-    buildFeatures {
-        viewBinding = true
-    }
-
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
-
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "1.8"
+    }
+    buildFeatures{
+        viewBinding = true
     }
 }
 
 dependencies {
-    implementation(libs.appcompat)
+
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    implementation(libs.activity)
-    implementation(libs.constraintlayout)
-    implementation(libs.core.ktx)
-    implementation(libs.navigation.fragment.ktx)
-    implementation(libs.navigation.ui.ktx)
-
-    // Firebase dependencies
-    implementation("com.google.firebase:firebase-auth:21.0.6")
-    implementation("com.google.firebase:firebase-storage:20.1.0")
-
-    // Testing dependencies
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
-
-    // Dagger Hilt
-    implementation("com.google.dagger:hilt-android:2.44")
-    kapt("com.google.dagger:hilt-android-compiler:2.44")
-
-    // Navigation
-    val nav_version = "2.5.0"
-    implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
-    implementation("androidx.navigation:navigation-ui-ktx:$nav_version")
-
-    // Other dependencies
-
-    implementation("com.github.bumptech.glide:glide:4.13.0")
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    implementation("com.github.bumptech.glide:glide:4.12.0")
+    implementation("com.github.ismaeldivita:chip-navigation-bar:1.4.0")
+    implementation("com.github.Dimezis:BlurView:version-2.0.3")
 }

@@ -1,6 +1,3 @@
 <resources>
-    <string name="app_name">Shopify</string>
-    <string name="rightAddress">The Biggest App Shopping</string>.
-    <string name="nameapp">Shopify</string>
-    <string name="qulity">Right now you can find a \nlot of products on this online shopping!</string>
+    <string name="app_name">TicketBooking</string>
 </resources>
