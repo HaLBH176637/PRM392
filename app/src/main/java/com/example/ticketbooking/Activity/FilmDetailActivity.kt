@@ -1,6 +1,7 @@
 package com.example.ticketbooking.Activity
 
 import android.content.ClipData.Item
+import android.content.Intent
 import android.os.Bundle
 import android.renderscript.RenderScript
 import android.view.ViewGroup
@@ -49,6 +50,11 @@ class FilmDetailActivity : AppCompatActivity() {
         binding.movieSummeryTxt.text = item.Description
         binding.backBtn.setOnClickListener{
             finish()
+        }
+        binding.buyTicketBtn.setOnClickListener{
+            val intent =Intent(this,SeatListActivity::class.java)
+            intent.putExtra("film",item)
+            startActivity(intent)
         }
         val radius = 10f
         val decorView = window.decorView

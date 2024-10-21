@@ -21,10 +21,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="name"
-        android:textSize="12sp"
+        android:textAlignment="center"
         android:textColor="@color/white"
-        android:layout_marginTop="8dp"
-        app:layout_constraintEnd_toEndOf="@+id/imageView3"
-        app:layout_constraintStart_toStartOf="@+id/imageView3"
-        app:layout_constraintTop_toBottomOf="@+id/imageView3" />
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="@+id/actorImage"
+        app:layout_constraintStart_toStartOf="@+id/actorImage"
+        app:layout_constraintTop_toBottomOf="@+id/actorImage" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -22,6 +22,7 @@ class CastListAdapter(private val cast: ArrayList<Cast>): RecyclerView.Adapter<C
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CastListAdapter.Viewholder {
+        context = parent.context
         val binding=ViewholderCastBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return Viewholder(binding)
     }

@@ -27,7 +27,7 @@
         android:maxLines="2"
         android:text="title"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/pic"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/pic"
         app:layout_constraintStart_toStartOf="@+id/pic"
         app:layout_constraintTop_toBottomOf="@+id/pic" />
