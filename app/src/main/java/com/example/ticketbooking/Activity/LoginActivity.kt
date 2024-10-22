@@ -50,12 +50,26 @@ class LoginActivity : AppCompatActivity() {
 
             loginUser(email, password)
         }
+
+        // Thêm sự kiện nhấp cho TextView để chuyển đến SignUpActivity
+        binding.signUpTextView.setOnClickListener {
+            val intent = Intent(this, SignUpActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun loginUser(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    // Lưu thông tin người dùng vào SharedPreferences
+                    val sharedPref = getSharedPreferences("user_prefs", MODE_PRIVATE)
+                    with(sharedPref.edit()) {
+                        putString("user_email", user?.email)
+                        apply()
+                    }
+
                     // Chuyển hướng tới MainActivity sau khi đăng nhập thành công
                     val intent = Intent(this, MainActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
