@@ -1,6 +1,7 @@
 package com.example.ticketbooking.Activity
 
 import android.content.ClipData.Item
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
@@ -17,6 +18,7 @@ import com.example.ticketbooking.Models.Film
 import com.example.ticketbooking.Models.SliderItems
 import com.example.ticketbooking.databinding.ActivityMainBinding
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -27,6 +29,7 @@ import com.google.firebase.database.ValueEventListener
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var database: FirebaseDatabase
+    private lateinit var auth: FirebaseAuth
     private val sliderHandle=Handler()
     private val sliderRunnable = Runnable {
         binding.viewPager2.currentItem = binding.viewPager2.currentItem + 1
@@ -34,17 +37,33 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         FirebaseApp.initializeApp(this)
+
+        auth = FirebaseAuth.getInstance()
+        database = FirebaseDatabase.getInstance()
+
+        // Kiểm tra người dùng
+        if (auth.currentUser == null) {
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            return
+        }
+
+        // Khởi tạo binding trước khi sử dụng nó ở bất kỳ nơi nào khác
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        database = FirebaseDatabase.getInstance()
+
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
+
+        // Sau khi binding được khởi tạo, khởi chạy các hàm init
         initBanner()
         initTopMoving()
         initUpcomming()
     }
+
 
     private fun initTopMoving() {
         val myRef:DatabaseReference=database.getReference("Items")
@@ -141,6 +160,7 @@ class MainActivity : AppCompatActivity() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 sliderHandle.removeCallbacks(sliderRunnable)
+                sliderHandle.postDelayed(sliderRunnable, 2000)
             }
         })
 
@@ -149,6 +169,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        sliderHandle.removeCallbacks(sliderRunnable)
     }
 
     override fun onResume() {
