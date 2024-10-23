@@ -1,93 +1,107 @@
 package com.example.ticketbooking.Activity
-import android.os.Handler
-import android.os.Looper
+
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log // Thêm dòng này
-import android.view.View
-import android.widget.EditText
-import android.widget.TextView
+import android.text.TextUtils
+import android.widget.RadioButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.ticketbooking.R
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
+import com.example.ticketbooking.Models.User // Đảm bảo import đúng lớp User từ package Models
+import com.example.ticketbooking.databinding.ActivitySignupBinding
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 
 class SignUpActivity : AppCompatActivity() {
 
-    private lateinit var emailEditText: EditText
-    private lateinit var passwordEditText: EditText
-    private lateinit var auth: FirebaseAuth
-    private lateinit var loginTextView: TextView
-    private lateinit var messageTextView: TextView
-
-    companion object {
-        private const val TAG = "SignUpActivity" // Thêm tag để log
-    }
+    private lateinit var binding: ActivitySignupBinding
+    private lateinit var database: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_signup)
+        binding = ActivitySignupBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        emailEditText = findViewById(R.id.emailEditText)
-        passwordEditText = findViewById(R.id.passwordEditText)
-        auth = FirebaseAuth.getInstance()
-        loginTextView = findViewById(R.id.loginTextView)
+        // Khởi tạo Firebase Realtime Database
+        database = FirebaseDatabase.getInstance().getReference("User")
 
-        loginTextView.setOnClickListener {
+        binding.signupButton.setOnClickListener {
+            val fullName = binding.fullNameEditText.text.toString().trim()
+            val email = binding.emailEditText.text.toString().trim()
+            val password = binding.passwordEditText.text.toString().trim()
+            val dob = binding.dobEditText.text.toString().trim()
+            val phone = binding.phoneEditText.text.toString().trim()
+            val address = binding.addressEditText.text.toString().trim()
+            val selectedGenderId = binding.gender.checkedRadioButtonId
+            val gender = findViewById<RadioButton>(selectedGenderId)?.text.toString()
+
+            // Kiểm tra các trường nhập liệu
+            if (TextUtils.isEmpty(fullName)) {
+                binding.fullNameEditText.error = "Full Name is required"
+                return@setOnClickListener
+            }
+            if (TextUtils.isEmpty(email)) {
+                binding.emailEditText.error = "Email is required"
+                return@setOnClickListener
+            }
+            if (TextUtils.isEmpty(password)) {
+                binding.passwordEditText.error = "Password is required"
+                return@setOnClickListener
+            }
+            if (TextUtils.isEmpty(dob)) {
+                binding.dobEditText.error = "Date of Birth is required"
+                return@setOnClickListener
+            }
+            if (TextUtils.isEmpty(phone)) {
+                binding.phoneEditText.error = "Phone Number is required"
+                return@setOnClickListener
+            }
+            if (TextUtils.isEmpty(address)) {
+                binding.addressEditText.error = "Address is required"
+                return@setOnClickListener
+            }
+
+            // Tạo ID người dùng ngẫu nhiên trong database
+            val id = database.push().key
+
+            // Tạo đối tượng người dùng với role mặc định là "user"
+            val user = User(
+                id = id ?: "",
+                fullname = fullName,
+                email = email,
+                phone = phone,
+                dateOfBirth = dob,
+                gender = gender,
+                address = address,
+                password = password,
+                role = "user" // Role mặc định là "user"
+            )
+
+            // Lưu người dùng vào Realtime Database
+            if (id != null) {
+                database.child(id).setValue(user).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Toast.makeText(this, "Sign up successful", Toast.LENGTH_SHORT).show()
+
+                        // Điều hướng đến màn hình đăng nhập sau khi đăng ký thành công
+                        val intent = Intent(this, LoginActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Toast.makeText(
+                            this,
+                            "Sign up failed: " + task.exception?.message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        }
+
+        // Chuyển hướng đến màn hình đăng nhập nếu đã có tài khoản
+        binding.loginTextView.setOnClickListener {
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
+            finish()
         }
-    }
-
-    fun signUp(view: View) {
-        val email = emailEditText.text.toString()
-        val password = passwordEditText.text.toString()
-
-        if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        auth.fetchSignInMethodsForEmail(email)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val signInMethods = task.result?.signInMethods
-                    if (signInMethods != null && signInMethods.isNotEmpty()) {
-                        Toast.makeText(this, "Email is already in use", Toast.LENGTH_SHORT).show()
-                        Log.d(TAG, "Sign up failed: Email already in use") // Log lỗi
-                    } else {
-                        registerUser(email, password)
-                    }
-                } else {
-                    Toast.makeText(this, "Error checking email: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
-                    Log.e(TAG, "Error checking email: ${task.exception?.message}") // Log lỗi
-                }
-            }
-    }
-
-    private fun registerUser(email: String, password: String) {
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this) { task ->
-                val messageTextView: TextView = findViewById(R.id.messageTextView) // Lấy TextView
-                if (task.isSuccessful) {
-                    // Đăng ký thành công
-                    val user: FirebaseUser? = auth.currentUser
-                    messageTextView.text = "Registration successful: ${user?.email}" // Hiển thị thông báo
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        val intent = Intent(this, LoginActivity::class.java) // Đảm bảo bạn đã khai báo LoginActivity trong AndroidManifest
-                        startActivity(intent)
-                        finish() // Kết thúc SignUpActivity để không trở lại được
-                    }, 3000)
-                } else {
-                    // Nếu đăng ký không thành công, hiển thị thông báo lỗi
-                    messageTextView.text = "Registration failed: ${task.exception?.message}" // Hiển thị thông báo
-                }
-            }
-    }
-
-    private fun showMessage(message: String) {
-        messageTextView.text = message // Cập nhật TextView với thông báo
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show() // Hiển thị Toast thông báo
     }
 }

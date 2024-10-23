@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.view.View
 import android.view.WindowManager
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,6 +17,7 @@ import com.example.ticketbooking.Adapter.FilmListAdapter
 import com.example.ticketbooking.Adapter.SliderAdapter
 import com.example.ticketbooking.Models.Film
 import com.example.ticketbooking.Models.SliderItems
+import com.example.ticketbooking.R
 import com.example.ticketbooking.databinding.ActivityMainBinding
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -24,98 +26,115 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.ismaeldivita.chipnavigation.ChipNavigationBar
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var database: FirebaseDatabase
-    private lateinit var auth: FirebaseAuth
+    private lateinit var emailuserTxt: TextView
+    private lateinit var fullnameTxt: TextView
+    private lateinit var database1: DatabaseReference
     private val sliderHandle=Handler()
     private val sliderRunnable = Runnable {
         binding.viewPager2.currentItem = binding.viewPager2.currentItem + 1
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize Firebase
         FirebaseApp.initializeApp(this)
 
-        auth = FirebaseAuth.getInstance()
-        database = FirebaseDatabase.getInstance()
-
-        // Kiểm tra người dùng
-        if (auth.currentUser == null) {
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            return
-        }
-
-        // Khởi tạo binding trước khi sử dụng nó ở bất kỳ nơi nào khác
+        // Initialize binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        )
+        // Initialize database
+        database = FirebaseDatabase.getInstance()
 
-        // Sau khi binding được khởi tạo, khởi chạy các hàm init
-        initBanner()
+        // Lấy thông tin người dùng từ SharedPreferences
+        val sharedPreferences = getSharedPreferences("UserSession", MODE_PRIVATE)
+        val userEmail = sharedPreferences.getString("userEmail", null)
+        val userFullName = sharedPreferences.getString("userFullName", null)
+
+        // Hiển thị thông tin nếu có
+        emailuserTxt = binding.emailuserTxt // Use binding
+        fullnameTxt = binding.fullnameTxt // Use binding
+
+        emailuserTxt.text = userEmail ?: "Email không có"
+        fullnameTxt.text = userFullName ?: "Tên không có"
+
+        // Các phần khởi tạo khác
         initTopMoving()
         initUpcomming()
+
+        val bottomNav = binding.bottomNav // Use binding
+        bottomNav.setOnItemSelectedListener { id ->
+            when (id) {
+                R.id.profile -> {
+                    val intent = Intent(this, ProfileActivity::class.java)
+                    startActivity(intent)
+                }
+            }
+        }
     }
 
 
     private fun initTopMoving() {
-        val myRef:DatabaseReference=database.getReference("Items")
-        binding.progressBarTopMovies.visibility=View.VISIBLE
-        val items=ArrayList<Film>()
-        myRef.addListenerForSingleValueEvent(object : ValueEventListener{
+        val myRef: DatabaseReference = database.reference.child("Items")
+        binding.progressBarTopMovies.visibility = View.VISIBLE
+        val items = ArrayList<Film>()
+
+        myRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if(snapshot.exists()){
-                    for (issue in snapshot.children){
+                if (snapshot.exists()) {
+                    for (issue in snapshot.children) {
                         items.add(issue.getValue(Film::class.java)!!)
                     }
-                    if (items.isNotEmpty()){
-                        binding.recyclerViewTopMovies.layoutManager=LinearLayoutManager(
+                    if (items.isNotEmpty()) {
+                        binding.recyclerViewTopMovies.layoutManager = LinearLayoutManager(
                             this@MainActivity,
                             LinearLayoutManager.HORIZONTAL,
-                            false)
+                            false
+                        )
                     }
-                    binding.recyclerViewTopMovies.adapter=FilmListAdapter(items)
+                    binding.recyclerViewTopMovies.adapter = FilmListAdapter(items)
                 }
-                binding.progressBarTopMovies.visibility=View.GONE
+                binding.progressBarTopMovies.visibility = View.GONE
             }
 
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
+                // Xử lý lỗi nếu cần
             }
-
         })
     }
+
     private fun initUpcomming() {
-        val myRef:DatabaseReference=database.getReference("Upcomming")
-        binding.progressBarupcomming.visibility=View.VISIBLE
-        val items=ArrayList<Film>()
-        myRef.addListenerForSingleValueEvent(object : ValueEventListener{
+        val myRef: DatabaseReference = database.reference.child("Upcomming")
+        binding.progressBarupcomming.visibility = View.VISIBLE
+        val items = ArrayList<Film>()
+
+        myRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if(snapshot.exists()){
-                    for (issue in snapshot.children){
+                if (snapshot.exists()) {
+                    for (issue in snapshot.children) {
                         items.add(issue.getValue(Film::class.java)!!)
                     }
-                    if (items.isNotEmpty()){
-                        binding.recyclerViewUpcomming.layoutManager=LinearLayoutManager(this@MainActivity,
+                    if (items.isNotEmpty()) {
+                        binding.recyclerViewUpcomming.layoutManager = LinearLayoutManager(
+                            this@MainActivity,
                             LinearLayoutManager.HORIZONTAL,
-                            false)
+                            false
+                        )
                     }
-                    binding.recyclerViewUpcomming.adapter=FilmListAdapter(items)
+                    binding.recyclerViewUpcomming.adapter = FilmListAdapter(items)
                 }
-                binding.progressBarupcomming.visibility=View.GONE
+                binding.progressBarupcomming.visibility = View.GONE
             }
 
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
+                // Xử lý lỗi nếu cần
             }
-
         })
     }
     private fun initBanner() {
