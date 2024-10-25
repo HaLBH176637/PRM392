@@ -34,7 +34,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
     private lateinit var emailuserTxt: TextView
     private lateinit var fullnameTxt: TextView
-    private lateinit var database1: DatabaseReference
     private val sliderHandle=Handler()
     private val sliderRunnable = Runnable {
         binding.viewPager2.currentItem = binding.viewPager2.currentItem + 1
@@ -67,13 +66,19 @@ class MainActivity : AppCompatActivity() {
         // Các phần khởi tạo khác
         initTopMoving()
         initUpcomming()
-
+        initBanner()
         val bottomNav = binding.bottomNav // Use binding
         bottomNav.setOnItemSelectedListener { id ->
             when (id) {
                 R.id.profile -> {
                     val intent = Intent(this, ProfileActivity::class.java)
                     startActivity(intent)
+                }
+                R.id.favorites -> {
+                    // Add logic for favorites if needed
+                }
+                R.id.cart -> {
+                    // Add logic for cart if needed
                 }
             }
         }

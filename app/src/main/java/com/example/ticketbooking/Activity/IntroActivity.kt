@@ -13,7 +13,7 @@ class IntroActivity : AppCompatActivity() {
         binding=ActivityIntroBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.startBtn.setOnClickListener{
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, LoginActivity::class.java))
         }
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,

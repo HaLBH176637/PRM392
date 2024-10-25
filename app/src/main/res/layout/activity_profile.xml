@@ -19,7 +19,6 @@
         android:paddingBottom="20dp" />
 
     <ImageView
-
         android:id="@+id/imageView7"
         android:layout_width="380dp"
         android:layout_height="180dp"
@@ -78,16 +77,37 @@
                 android:paddingBottom="2dp"
                 android:textSize="16sp" />
 
-            <EditText
-                android:id="@+id/editTextGender"
+            <!-- Gender RadioGroup -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gender"
+                android:textSize="16sp"
+                android:textColor="#444"
+                android:paddingTop="10dp"
+                android:paddingBottom="6dp" />
+
+            <RadioGroup
+                android:id="@+id/radioGroupGender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:focusableInTouchMode="true"
-                android:hint="Gender"
-                android:minHeight="48dp"
-                android:paddingBottom="6dp"
-                android:textSize="16sp" />
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radioMale"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Male"
+                    android:textSize="16sp" />
+
+                <RadioButton
+                    android:id="@+id/radioFemale"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Female"
+                    android:textSize="16sp"
+                    android:layout_marginStart="16dp" />
+            </RadioGroup>
 
             <EditText
                 android:id="@+id/editTextAddress"
@@ -108,25 +128,47 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_gravity="center"
-        android:layout_marginTop="16dp">
+        android:layout_marginTop="16dp"
+        android:paddingBottom="50dp">
 
         <Button
             android:id="@+id/buttonEdit"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Edit"
             android:backgroundTint="#1976D2"
+            android:minHeight="48dp"
+            android:text="Edit"
             android:textColor="#FFFFFF" />
 
         <Button
             android:id="@+id/buttonLogout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:layout_weight="1"
-            android:text="Logout"
-            android:textColor="#FFFFFF"
             android:backgroundTint="#D32F2F"
-            android:layout_marginStart="16dp" />
+            android:minHeight="48dp"
+            android:text="Logout"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
+
+    <com.ismaeldivita.chipnavigation.ChipNavigationBar
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        app:cnb_menuResource="@menu/bottom_menu"
+        android:background="@color/blackcolor2"
+        android:layout_marginBottom="32dp"
+        app:cnb_iconSize="20dp"
+        android:padding="4dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:cnb_iconColor="@color/white"
+        app:cnb_orientationMode="horizontal"
+        app:cnb_radius="10dp"
+        app:cnb_unselectedColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/scrollView2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </LinearLayout>

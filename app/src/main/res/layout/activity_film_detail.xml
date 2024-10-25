@@ -142,7 +142,8 @@
                         android:id="@+id/imdbTxt"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="IDME" />
+                        android:text="IDME"
+                        android:textColor="@color/white"/>
                 </LinearLayout>
 
                 <TextView

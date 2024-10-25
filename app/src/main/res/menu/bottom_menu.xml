@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-    android:id="@+id/explorer"
+    android:id="@+id/menu"
     android:icon="@drawable/btn_1"
-    android:title="Explorer"
+    android:title="Menu"
     app:cnb_backgroundColor="@color/orange"
     app:cnb_iconColor="@color/white"/>
     <item
