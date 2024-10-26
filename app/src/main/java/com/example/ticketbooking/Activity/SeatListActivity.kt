@@ -1,8 +1,7 @@
 package com.example.ticketbooking.Activity
 
-import android.icu.text.DecimalFormat
+import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
@@ -10,151 +9,208 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.ticketbooking.Adapter.DateAdapter
 import com.example.ticketbooking.Adapter.SeatListAdapter
 import com.example.ticketbooking.Adapter.TimeAdapter
-import com.example.ticketbooking.Models.Film
-import com.example.ticketbooking.Models.Order
 import com.example.ticketbooking.Models.Seat
-import com.example.ticketbooking.R
 import com.example.ticketbooking.databinding.ActivitySeatListBinding
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
+import com.google.firebase.database.ValueEventListener
 
-class SeatListActivity : AppCompatActivity() {
-    private lateinit var binding: ActivitySeatListBinding
-    private lateinit var database: DatabaseReference
-    private lateinit var film: Film
-    private var price: Double = 0.0
-    private var number: Int = 0
-    private lateinit var userId: String
+    class SeatListActivity : AppCompatActivity(), SeatListAdapter.SelectedSeat {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        private lateinit var binding: ActivitySeatListBinding
+        private lateinit var database: DatabaseReference
+        private lateinit var seatListAdapter: SeatListAdapter
+        private var selectedSeats = ArrayList<String>()
+        private var selectedDate = ""
+        private var selectedTime = ""
+        private var price = 45000 // Giá vé giả định
+        private var currentTotalPrice = 0 // Biến để lưu giá trị tổng cộng hiện tại
+        private var userId: String? = null
+        private val bookedSeats = mutableListOf<String>() // Danh sách ghế đã đặt
 
-        binding = ActivitySeatListBinding.inflate(layoutInflater)
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            binding = ActivitySeatListBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        val sharedPreferences = getSharedPreferences("UserSession", MODE_PRIVATE)
-        userId = sharedPreferences.getString("userId", "") ?: ""
+            // Lấy userId từ SharedPreferences
+            val sharedPreferences = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
+            userId = sharedPreferences.getString("userId", null)
 
-        setContentView(binding.root)
-        getIntentExtra()
-        setVariable()
-        initSeatsList()
-    }
-
-    private fun initSeatsList() {
-        val gridLayoutManager = GridLayoutManager(this, 7)
-        gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-            override fun getSpanSize(position: Int): Int {
-                return if (position % 7 == 3) 1 else 1
+            if (userId == null) {
+                Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
+                finish()
+                return
             }
-        }
-        binding.seatRecyclerview.layoutManager = gridLayoutManager
 
-        val seatList = mutableListOf<Seat>()
-        val numberSeats = 81
-        for (i in 0 until numberSeats) {
-            val seatName = "Seat$i"
-            val seatStatus = if (i == 2 || i == 20 || i == 33 || i == 41 || i == 50 || i == 72 || i == 73) {
-                Seat.SeatStatus.UNAVAILABLE
-            } else {
-                Seat.SeatStatus.AVAILABLE
+            database = FirebaseDatabase.getInstance().reference
+            loadDates()
+            loadTimes()
+            loadBookedSeats() // Tải ghế đã đặt
+            binding.processPaymentBtn.setOnClickListener {
+                if (selectedSeats.isNotEmpty() && selectedDate.isNotBlank() && selectedTime.isNotBlank()) {
+                    saveOrderToDatabase()
+                } else {
+                    Toast.makeText(this, "Hãy chọn ngày, thời gian và ghế.", Toast.LENGTH_SHORT).show()
+                }
             }
-            seatList.add(Seat(seatStatus, seatName))
+
+        }
+        private fun loadBookedSeats() {
+            // Tải danh sách ghế đã đặt từ Firebase
+            database.child("Orders").addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (orderSnapshot in snapshot.children) {
+                        val orderData = orderSnapshot.value as? Map<*, *>
+                        if (orderData != null) {
+                            val seats = orderData["selectedSeats"] as? List<String> ?: continue
+                            bookedSeats.addAll(seats.map { it.toString().trim() }) // Thêm ghế vào danh sách đã đặt
+                        }
+                    }
+                    // Bây giờ bạn có thể tải ghế
+                    loadSeats()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(this@SeatListActivity, "Error loading booked seats", Toast.LENGTH_SHORT).show()
+                }
+            })
         }
 
-        val seatAdapter = SeatListAdapter(seatList, this, object : SeatListAdapter.SelectedSeat {
-            override fun Returns(selectedName: String, num: Int) {
-                binding.numberSelectedTxt.text = "$num Seat Selected"
-                val df = DecimalFormat("#.##")
-                price = df.format(num * film.price).toDouble()
-                number = num
-                binding.priceTxt.text = "$$price"
+        private fun loadSeats() {
+            selectedSeats.clear() // Xóa các ghế đã chọn mỗi khi tải lại ghế
+
+            if (selectedDate.isBlank() || selectedTime.isBlank()) {
+                Toast.makeText(this, "Hãy chọn ngày và giờ.", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Tải ghế từ Firebase với ngày và giờ đã chọn
+            database.child("Seats").child(selectedDate).child(selectedTime).addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val seats = mutableListOf<Seat>()
+                    for (seatSnapshot in snapshot.children) {
+                        val seatData = seatSnapshot.value as? Map<*, *>
+                        if (seatData != null) {
+                            val seatName = seatData["name"] as? String ?: continue
+                            // Kiểm tra xem ghế có nằm trong danh sách bookedSeats không
+                            val seatStatus = if (bookedSeats.contains(seatName.trim())) "UNAVAILABLE" else seatData["SeatStatus"] as? String ?: "AVAILABLE"
+
+                            // Thêm ghế vào danh sách
+                            seats.add(Seat(name = seatName, SeatStatus = seatStatus))
+                        }
+                    }
+
+                    if (seats.isEmpty()) {
+                        Toast.makeText(this@SeatListActivity, "Không có ghế nào được tìm thấy.", Toast.LENGTH_SHORT).show()
+                    }
+
+                    // Hiển thị danh sách ghế
+                    binding.seatRecyclerview.layoutManager = GridLayoutManager(this@SeatListActivity, 7)
+                    seatListAdapter = SeatListAdapter(seats, this@SeatListActivity, this@SeatListActivity, bookedSeats)
+                    binding.seatRecyclerview.adapter = seatListAdapter
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(this@SeatListActivity, "Error loading seats", Toast.LENGTH_SHORT).show()
+                }
+            })
+        }
+
+        private fun loadDates() {
+        database.child("Dates").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val dates = snapshot.children.map { it.getValue(String::class.java)!! }
+                binding.dateRecyclerview.layoutManager = LinearLayoutManager(this@SeatListActivity, LinearLayoutManager.HORIZONTAL, false)
+                binding.dateRecyclerview.adapter = DateAdapter(dates) { date ->
+                    selectedDate = date
+                    binding.selectedDateTextView.text = "Selected Date: $date"
+                    loadSeats() // Tải lại ghế khi chọn ngày
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@SeatListActivity, "Error loading dates", Toast.LENGTH_SHORT).show()
             }
         })
-
-        binding.seatRecyclerview.adapter = seatAdapter
-        binding.seatRecyclerview.isNestedScrollingEnabled = false
-
-        binding.TimeRecyclerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        binding.TimeRecyclerview.adapter = TimeAdapter(generateTimeSlots())
-
-        binding.dateRecyclerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        binding.dateRecyclerview.adapter = DateAdapter(generateDates())
     }
 
-    private fun setVariable() {
-        binding.backBtn.setOnClickListener {
-            finish()
-        }
-
-        binding.processPaymentBtn.setOnClickListener {
-            processPayment()
-        }
-    }
-
-    private fun getIntentExtra() {
-        film = intent.getParcelableExtra("film")!!
-    }
-
-    private fun generateTimeSlots(): List<String> {
-        val timeSlots = mutableListOf<String>()
-        val formatter = DateTimeFormatter.ofPattern("hh:mm a")
-
-        for (i in 0 until 24 step 2) {
-            val time = LocalTime.of(i, 0)
-            timeSlots.add(time.format(formatter))
-        }
-        return timeSlots
-    }
-
-    private fun generateDates(): List<String> {
-        val dates = mutableListOf<String>()
-        val today = LocalDate.now()
-        val formatter = DateTimeFormatter.ofPattern("EEE/dd/MMM")
-
-        for (i in 0 until 7) {
-            dates.add(today.plusDays(i.toLong()).format(formatter))
-        }
-        return dates
-    }
-
-    private fun processPayment() {
-        val selectedTimePosition = (binding.TimeRecyclerview.adapter as TimeAdapter).getSelectedPosition()
-        if (selectedTimePosition == -1) {
-            Toast.makeText(this, "Please select a time", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val selectedTime = (binding.TimeRecyclerview.adapter as TimeAdapter).getItem(selectedTimePosition)
-        val selectedDate = binding.selectedDateTextView.text.toString() // Thay đổi ID này phù hợp với layout của bạn
-
-        val order = Order(
-            id = generateOrderId(), // Hàm để tạo ID cho đơn hàng
-            film = film,
-            selectedSeats = listOf("Seat1", "Seat2"), // Thay đổi danh sách ghế đã chọn
-            date = selectedDate,
-            time = selectedTime,
-            price = price,
-            userId = userId // Sử dụng userId đã lấy từ SharedPreferences
-        )
-
-        // Lưu đơn hàng vào Firebase
-        database = FirebaseDatabase.getInstance().reference.child("Orders")
-        database.child(order.id.toString()).setValue(order)
-            .addOnSuccessListener {
-                // Xử lý thành công, ví dụ: hiện thông báo
-                Toast.makeText(this, "Đặt vé thành công!", Toast.LENGTH_SHORT).show()
+    private fun loadTimes() {
+        database.child("Times").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val times = snapshot.children.map { it.getValue(String::class.java)!! }
+                binding.TimeRecyclerview.layoutManager = LinearLayoutManager(this@SeatListActivity, LinearLayoutManager.HORIZONTAL, false)
+                binding.TimeRecyclerview.adapter = TimeAdapter(times) { time ->
+                    selectedTime = time
+                    binding.selectedTimeTextView.text = "Selected Time: $time"
+                    loadSeats() // Tải lại ghế khi chọn thời gian
+                }
             }
-            .addOnFailureListener { e ->
-                // Xử lý thất bại, ví dụ: hiện thông báo lỗi
-                Toast.makeText(this, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
+
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@SeatListActivity, "Error loading times", Toast.LENGTH_SHORT).show()
             }
+        })
+    }
+        private fun saveOrderToDatabase() {
+            // Kiểm tra xem tất cả ghế đã chọn có phải là "AVAILABLE" không
+            if (selectedSeats.any { bookedSeats.contains(it) }) {
+                Toast.makeText(this, "Một hoặc nhiều ghế đã được đặt trước.", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Tạo thông tin đơn hàng dưới dạng MutableMap
+            val order = mutableMapOf<String, Any>(
+                "id" to System.currentTimeMillis(),
+                "film" to "Selected Film",
+                "selectedSeats" to selectedSeats,
+                "date" to selectedDate,
+                "time" to selectedTime,
+                "price" to currentTotalPrice,
+                "userId" to (userId ?: "")
+            )
+
+            // Lưu vào đường dẫn tương ứng với ngày và giờ
+            database.child("Orders").child(selectedDate).child(selectedTime).push().setValue(order).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // Cập nhật trạng thái ghế thành "UNAVAILABLE"
+                    updateSeatStatus("UNAVAILABLE")
+                    Toast.makeText(this, "Đặt vé thành công!", Toast.LENGTH_SHORT).show()
+                    resetSelection()
+                } else {
+                    Toast.makeText(this, "Đặt vé thất bại!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+
+        private fun updateSeatStatus(status: String) {
+        for (seatName in selectedSeats) {
+            // Cập nhật trạng thái ghế
+            val seatUpdate = mutableMapOf<String, Any>(
+                "SeatStatus" to status
+            )
+            // Chú ý đến cấu trúc đường dẫn
+            database.child("Seats").child(selectedDate).child(selectedTime).child(seatName).updateChildren(seatUpdate)
+        }
     }
 
-    private fun generateOrderId(): Int {
-        // Tạo ID đơn hàng duy nhất (có thể là số ngẫu nhiên hoặc tăng dần)
-        return (System.currentTimeMillis() % 100000).toInt() // Chỉ là ví dụ, bạn có thể thay đổi cách tạo ID
+    private fun resetSelection() {
+        selectedSeats.clear()
+        currentTotalPrice = 0
+        binding.priceTxt.text = "0 VNĐ"
+        binding.numberSelectedTxt.text = "0 Seat Selected"
+        seatListAdapter.clearSelectedSeats()
+        loadSeats() // Tải lại danh sách ghế để cập nhật trạng thái
+    }
+
+    override fun Returns(selectedName: String, number: Int) {
+        selectedSeats.clear()
+        selectedSeats.addAll(selectedName.split(",").filter { it.isNotEmpty() })
+        currentTotalPrice = number * price
+        binding.numberSelectedTxt.text = "$number Seat Selected"
+        binding.priceTxt.text = "${currentTotalPrice} VNĐ"
     }
 }

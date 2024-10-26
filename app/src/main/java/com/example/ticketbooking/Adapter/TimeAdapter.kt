@@ -7,14 +7,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ticketbooking.R
 import com.example.ticketbooking.databinding.ItemTimeBinding
 
-class TimeAdapter(private val timeSlots: List<String>): RecyclerView.Adapter<TimeAdapter.TimeViewholder>() {
-    private var selectedPosition = -1
-    private var lastSelectedPosition = -1
+class TimeAdapter(
+    private val timeSlots: List<String>,
+    private val onTimeSelected: (String) -> Unit // Callback khi người dùng chọn thời gian
+) : RecyclerView.Adapter<TimeAdapter.TimeViewHolder>() {
 
-    inner class TimeViewholder(private val binding: ItemTimeBinding): RecyclerView.ViewHolder(binding.root) {
-        fun bind(time: String) {
+    private var selectedPosition = -1
+
+    inner class TimeViewHolder(private val binding: ItemTimeBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(time: String, position: Int) {
             binding.TextViewTime.text = time
-            if (selectedPosition == adapterPosition) {
+            if (selectedPosition == position) {
                 binding.TextViewTime.setBackgroundResource(R.drawable.white_bg)
                 binding.TextViewTime.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
             } else {
@@ -23,35 +26,25 @@ class TimeAdapter(private val timeSlots: List<String>): RecyclerView.Adapter<Tim
             }
 
             binding.root.setOnClickListener {
-                val position = adapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    lastSelectedPosition = selectedPosition
-                    selectedPosition = position
-                    notifyItemChanged(lastSelectedPosition)
-                    notifyItemChanged(selectedPosition)
-                }
+                selectedPosition = position
+                notifyDataSetChanged()
+                onTimeSelected(time) // Trả về thời gian đã chọn
             }
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TimeViewholder {
-        return TimeViewholder(
-            ItemTimeBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        )
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TimeViewHolder {
+        val binding = ItemTimeBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return TimeViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: TimeViewholder, position: Int) {
-        holder.bind(timeSlots[position])
+    override fun onBindViewHolder(holder: TimeViewHolder, position: Int) {
+        holder.bind(timeSlots[position], position)
     }
 
     override fun getItemCount(): Int = timeSlots.size
 
-    // Thêm phương thức này để lấy vị trí của thời gian đã chọn
-    fun getSelectedPosition(): Int {
-        return selectedPosition
+    fun getSelectedTime(): String? {
+        return if (selectedPosition != -1) timeSlots[selectedPosition] else null
     }
-    fun getItem(position: Int): String {
-        return timeSlots[position]
-    }
-
 }

@@ -7,17 +7,22 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ticketbooking.R
 import com.example.ticketbooking.databinding.ItemDateBinding
 
-class DateAdapter(private val dates: List<String>) : RecyclerView.Adapter<DateAdapter.DateViewHolder>() {
+class DateAdapter(
+    private val dates: List<String>,
+    private val onDateSelected: (String) -> Unit // Callback khi người dùng chọn ngày
+) : RecyclerView.Adapter<DateAdapter.DateViewHolder>() {
+
     private var selectedPosition = -1
 
     inner class DateViewHolder(private val binding: ItemDateBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(date: String, position: Int) {
-            val dateParts = date.split("/")
+            // Tách ngày tháng năm
+            val dateParts = date.split("-")
             if (dateParts.size == 3) {
-                binding.dayTxt.text = dateParts[0]
-                binding.datMonthTxt.text = dateParts[1] + " " + dateParts[2]
+                binding.dayTxt.text = dateParts[2] // Ngày
+                binding.datMonthTxt.text = "${dateParts[1]}-${dateParts[0]}" // Tháng - Năm
 
-                // Thay đổi màu sắc dựa trên vị trí đã chọn
+                // Đổi màu nếu vị trí đã được chọn
                 if (selectedPosition == position) {
                     binding.mailLayout.setBackgroundResource(R.drawable.white_bg)
                     binding.dayTxt.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
@@ -29,11 +34,9 @@ class DateAdapter(private val dates: List<String>) : RecyclerView.Adapter<DateAd
                 }
 
                 binding.root.setOnClickListener {
-                    if (position != RecyclerView.NO_POSITION) {
-                        // Cập nhật vị trí đã chọn và thông báo cho adapter
-                        selectedPosition = position
-                        notifyDataSetChanged()
-                    }
+                    selectedPosition = position
+                    notifyDataSetChanged()
+                    onDateSelected(date) // Trả về ngày đã chọn
                 }
             }
         }
@@ -50,4 +53,8 @@ class DateAdapter(private val dates: List<String>) : RecyclerView.Adapter<DateAd
     }
 
     override fun getItemCount(): Int = dates.size
+
+    fun getSelectedDate(): String? {
+        return if (selectedPosition != -1 && selectedPosition < dates.size) dates[selectedPosition] else null
+    }
 }
