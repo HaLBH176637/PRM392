@@ -9,8 +9,6 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
-        maven {url = uri ("https://www.jitpack.io")}
-        jcenter()
     }
 }
 dependencyResolutionManagement {
@@ -18,11 +16,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven {url = uri ("https://www.jitpack.io")}
-        jcenter()
     }
 }
 
-rootProject.name = "TicketBooking"
+rootProject.name = "PRM392"
 include(":app")
- 
