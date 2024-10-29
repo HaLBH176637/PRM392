@@ -1,7 +1,7 @@
 package com.example.ticketbooking.Models
 
 data class Order(
-    val id: Int,
+    val id: Long,
     val film: Film,
     val selectedSeats: List<String>,
     val date: String,

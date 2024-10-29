@@ -53,7 +53,10 @@ class ProfileActivity : AppCompatActivity() {
 
         // Get SharedPreferences
         sharedPreferences = getSharedPreferences("UserSession", MODE_PRIVATE)
-
+        val sharedPreferences = getSharedPreferences("UserSession", MODE_PRIVATE)
+        val userEmail = sharedPreferences.getString("userEmail", null)
+        val userFullName = sharedPreferences.getString("userFullName", null)
+        val userId = sharedPreferences.getString("userId", null) ?: "defaultUserId"
         // Load user data from SharedPreferences
         loadUserData()
 
@@ -68,18 +71,24 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         // Navigation bar logic
-        val bottomNav = findViewById<ChipNavigationBar>(R.id.bottomNav)
-        bottomNav.setOnItemSelectedListener { itemId ->
-            when (itemId) {
-                R.id.menu -> {
-                    val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                }
-                // Handle other menu items
-                R.id.favorites -> { /* Add logic for favorites if needed */ }
-                R.id.cart -> { /* Add logic for cart if needed */ }
-            }
+//        val bottomNav = findViewById<ChipNavigationBar>(R.id.bottomNav)
+//        bottomNav.setOnItemSelectedListener { itemId ->
+//            when (itemId) {
+//                R.id.menu -> {
+//                    val intent = Intent(this, MainActivity::class.java)
+//                    startActivity(intent)
+//                    finish()
+//                }
+//                // Handle other menu items
+//                R.id.favorites -> { /* Add logic for favorites if needed */ }
+//                R.id.cart -> { // Chuyển tới OrderDetailActivity và truyền userId
+//                    val intent = Intent(this, OrderDetailActivity::class.java)
+//                    intent.putExtra("USER_ID", userId)
+//                    startActivity(intent) }
+//            }
+//        }
+        binding.backBtn.setOnClickListener {
+            finish() // Quay lại activity trước đó
         }
     }
 

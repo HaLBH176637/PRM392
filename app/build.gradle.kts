@@ -1,15 +1,16 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
-    namespace = "com.example.prm392"
+    namespace = "com.example.ticketbooking"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.prm392"
-        minSdk = 21
+        applicationId = "com.example.ticketbooking"
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -33,16 +34,36 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    buildFeatures{
+        viewBinding = true
+    }
 }
 
 dependencies {
 
-    implementation(libs.appcompat)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    implementation(libs.activity)
-    implementation(libs.constraintlayout)
-    implementation(libs.core.ktx)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.firebase.database.ktx)
+    implementation(libs.firebase.database)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.storage)
+    implementation(libs.firebase.firestore)
+    implementation(libs.androidx.recyclerview)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.paypal.android:paypal-web-payments:1.5.0")
+    implementation("com.github.bumptech.glide:glide:4.12.0")
+    implementation("com.github.ismaeldivita:chip-navigation-bar:1.4.0")
+
+    implementation("com.github.Dimezis:BlurView:version-2.0.3")
 }

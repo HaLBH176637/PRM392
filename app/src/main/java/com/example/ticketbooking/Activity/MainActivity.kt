@@ -51,11 +51,12 @@ class MainActivity : AppCompatActivity() {
         // Initialize database
         database = FirebaseDatabase.getInstance()
 
+
         // Lấy thông tin người dùng từ SharedPreferences
         val sharedPreferences = getSharedPreferences("UserSession", MODE_PRIVATE)
         val userEmail = sharedPreferences.getString("userEmail", null)
         val userFullName = sharedPreferences.getString("userFullName", null)
-
+        val userId = sharedPreferences.getString("userId", null) ?: "defaultUserId"
         // Hiển thị thông tin nếu có
         emailuserTxt = binding.emailuserTxt // Use binding
         fullnameTxt = binding.fullnameTxt // Use binding
@@ -78,10 +79,14 @@ class MainActivity : AppCompatActivity() {
                     // Add logic for favorites if needed
                 }
                 R.id.cart -> {
-                    // Add logic for cart if needed
+                    // Chuyển tới OrderDetailActivity và truyền userId
+                    val intent = Intent(this, OrderDetailActivity::class.java)
+                    intent.putExtra("USER_ID", userId)
+                    startActivity(intent)
                 }
             }
         }
+
     }
 
 

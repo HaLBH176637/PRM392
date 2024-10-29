@@ -1,6 +1,7 @@
 package com.example.ticketbooking.Activity
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.ticketbooking.Adapter.DateAdapter
 import com.example.ticketbooking.Adapter.SeatListAdapter
 import com.example.ticketbooking.Adapter.TimeAdapter
+import com.example.ticketbooking.Models.Film
 import com.example.ticketbooking.Models.Seat
 import com.example.ticketbooking.databinding.ActivitySeatListBinding
 import com.google.firebase.database.DataSnapshot
@@ -29,6 +31,7 @@ import com.google.firebase.database.ValueEventListener
         private var currentTotalPrice = 0 // Biến để lưu giá trị tổng cộng hiện tại
         private var userId: String? = null
         private val bookedSeats = mutableListOf<String>() // Danh sách ghế đã đặt
+        private lateinit var film: Film // Thêm biến film
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
@@ -45,6 +48,9 @@ import com.google.firebase.database.ValueEventListener
                 return
             }
 
+            // Nhận thông tin film từ Intent
+            film = intent.getParcelableExtra("film") ?: Film() // Khởi tạo film rỗng nếu không có
+
             database = FirebaseDatabase.getInstance().reference
             loadDates()
             loadTimes()
@@ -56,8 +62,11 @@ import com.google.firebase.database.ValueEventListener
                     Toast.makeText(this, "Hãy chọn ngày, thời gian và ghế.", Toast.LENGTH_SHORT).show()
                 }
             }
-
+            binding.backBtn.setOnClickListener {
+                finish()
+            }
         }
+
         private fun loadBookedSeats() {
             // Tải danh sách ghế đã đặt từ Firebase
             database.child("Orders").addListenerForSingleValueEvent(object : ValueEventListener {
@@ -164,13 +173,15 @@ import com.google.firebase.database.ValueEventListener
             // Tạo thông tin đơn hàng dưới dạng MutableMap
             val order = mutableMapOf<String, Any>(
                 "id" to System.currentTimeMillis(),
-                "film" to "Selected Film",
+                "filmTitle" to (film.Title ?: ""), // Sử dụng giá trị mặc định nếu Title là null
                 "selectedSeats" to selectedSeats,
                 "date" to selectedDate,
                 "time" to selectedTime,
                 "price" to currentTotalPrice,
                 "userId" to (userId ?: "")
             )
+
+
 
             // Lưu vào đường dẫn tương ứng với ngày và giờ
             database.child("Orders").child(selectedDate).child(selectedTime).push().setValue(order).addOnCompleteListener { task ->
@@ -179,11 +190,17 @@ import com.google.firebase.database.ValueEventListener
                     updateSeatStatus("UNAVAILABLE")
                     Toast.makeText(this, "Đặt vé thành công!", Toast.LENGTH_SHORT).show()
                     resetSelection()
+
+                    // Chuyển về MainActivity
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
+                    finish() // Đóng SeatListActivity
                 } else {
                     Toast.makeText(this, "Đặt vé thất bại!", Toast.LENGTH_SHORT).show()
                 }
             }
         }
+
 
 
         private fun updateSeatStatus(status: String) {
