@@ -52,7 +52,10 @@ class MainActivity : AppCompatActivity() {
         // Initialize binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        binding.buttonChatbot.setOnClickListener {
+            val intent = Intent(this, ChatBotActivity::class.java)
+            startActivity(intent)
+        }
         // Initialize database
         database = FirebaseDatabase.getInstance()
 

@@ -66,4 +66,8 @@ dependencies {
     implementation("com.github.ismaeldivita:chip-navigation-bar:1.4.0")
 
     implementation("com.github.Dimezis:BlurView:version-2.0.3")
+    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
+    implementation("com.google.guava:guava:31.1-android")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
 }
