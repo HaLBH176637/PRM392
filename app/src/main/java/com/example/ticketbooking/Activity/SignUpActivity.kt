@@ -59,7 +59,18 @@ class SignUpActivity : AppCompatActivity() {
                 binding.addressEditText.error = "Address is required"
                 return@setOnClickListener
             }
-
+            database.orderByChild("email").equalTo(email).get().addOnSuccessListener { emailSnapshot ->
+                if (emailSnapshot.exists()) {
+                    Toast.makeText(this, "Email đã tồn tại", Toast.LENGTH_SHORT).show()
+                    return@addOnSuccessListener
+                }
+            }
+            database.orderByChild("phone").equalTo(phone).get().addOnSuccessListener { phoneSnapshot ->
+                if (phoneSnapshot.exists()) {
+                    Toast.makeText(this, "Số điện thoại đã tồn tại", Toast.LENGTH_SHORT).show()
+                    return@addOnSuccessListener
+                }
+            }
             // Tạo ID người dùng ngẫu nhiên trong database
             val id = database.push().key
 

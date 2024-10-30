@@ -51,16 +51,37 @@
             android:layout_marginTop="24dp"
             android:padding="12dp"/>
 
-        <TextView
-            android:id="@+id/signUpTextView"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:layout_marginTop="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:minHeight="48dp"
-            android:text="Don't have an account? Sign up"
-            android:textColor="@android:color/white" />
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/signUpTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:textSize="18dp"
+                android:minHeight="48dp"
+                android:text="Sign up"
+                android:textColor="@android:color/white"
+                android:layout_marginEnd="155dp"/> <!-- Margin giữa hai TextView -->
+
+            <TextView
+                android:id="@+id/forgetpasswordTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:textSize="18dp"
+                android:minHeight="48dp"
+                android:text="Reset password"
+                android:textColor="@android:color/white" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

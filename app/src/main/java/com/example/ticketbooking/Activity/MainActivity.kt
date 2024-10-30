@@ -4,6 +4,8 @@ import android.content.ClipData.Item
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
@@ -34,10 +36,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
     private lateinit var emailuserTxt: TextView
     private lateinit var fullnameTxt: TextView
-    private val sliderHandle=Handler()
+    private val items = ArrayList<Film>() // Danh sách phim gốc
+    private val filteredItems = ArrayList<Film>() // Danh sách phim sau khi lọc
+    private val sliderHandle = Handler()
     private val sliderRunnable = Runnable {
         binding.viewPager2.currentItem = binding.viewPager2.currentItem + 1
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -75,9 +80,11 @@ class MainActivity : AppCompatActivity() {
                     val intent = Intent(this, ProfileActivity::class.java)
                     startActivity(intent)
                 }
+
                 R.id.favorites -> {
                     // Add logic for favorites if needed
                 }
+
                 R.id.cart -> {
                     // Chuyển tới OrderDetailActivity và truyền userId
                     val intent = Intent(this, OrderDetailActivity::class.java)
@@ -86,29 +93,34 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        binding.editTextText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                filterMovies(s.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
     }
 
 
     private fun initTopMoving() {
         val myRef: DatabaseReference = database.reference.child("Items")
         binding.progressBarTopMovies.visibility = View.VISIBLE
-        val items = ArrayList<Film>()
 
         myRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
+                    items.clear() // Đảm bảo danh sách trống trước khi thêm mới
                     for (issue in snapshot.children) {
-                        items.add(issue.getValue(Film::class.java)!!)
+                        val film = issue.getValue(Film::class.java)
+                        if (film != null) {
+                            items.add(film)
+                        }
                     }
-                    if (items.isNotEmpty()) {
-                        binding.recyclerViewTopMovies.layoutManager = LinearLayoutManager(
-                            this@MainActivity,
-                            LinearLayoutManager.HORIZONTAL,
-                            false
-                        )
-                    }
-                    binding.recyclerViewTopMovies.adapter = FilmListAdapter(items)
+                    // Hiển thị danh sách phim ban đầu
+                    updateRecyclerView(items)
                 }
                 binding.progressBarTopMovies.visibility = View.GONE
             }
@@ -117,6 +129,35 @@ class MainActivity : AppCompatActivity() {
                 // Xử lý lỗi nếu cần
             }
         })
+    }
+    private fun updateRecyclerView(movieList: ArrayList<Film>) {
+        binding.recyclerViewTopMovies.layoutManager = LinearLayoutManager(
+            this@MainActivity,
+            LinearLayoutManager.HORIZONTAL,
+            false
+        )
+        binding.recyclerViewTopMovies.adapter = FilmListAdapter(movieList)
+    }
+    private fun filterMovies(query: String) {
+        filteredItems.clear()
+
+        if (query.isNotEmpty()) {
+            // Lọc danh sách phim dựa trên Title chứa từ khóa tìm kiếm
+            val filteredList = items.filter {
+                it.Title?.contains(query, ignoreCase = true) == true
+            }
+            filteredItems.addAll(filteredList)
+        } else {
+            // Nếu không có từ khóa tìm kiếm, hiển thị danh sách gốc
+            filteredItems.addAll(items)
+        }
+
+        // Nếu không có phim phù hợp, thêm "Film Not Found"
+        if (filteredItems.isEmpty()) {
+            filteredItems.add(Film(Title = "Film Not Found"))
+        }
+
+        updateRecyclerView(filteredItems)
     }
 
     private fun initUpcomming() {

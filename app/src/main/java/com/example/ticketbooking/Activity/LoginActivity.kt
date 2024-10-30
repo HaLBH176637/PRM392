@@ -23,6 +23,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var loginButton: Button
     private lateinit var signUpTextView: TextView
     private lateinit var database: DatabaseReference
+    private lateinit var forgetpasswordTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,9 +35,10 @@ class LoginActivity : AppCompatActivity() {
         passwordEditText = findViewById(R.id.passwordEditText)
         loginButton = findViewById(R.id.loginButton)
         signUpTextView = findViewById(R.id.signUpTextView)
-
+        forgetpasswordTextView = findViewById(R.id.forgetpasswordTextView)
         loginButton.setOnClickListener { loginUser() }
         signUpTextView.setOnClickListener { openSignUpActivity() }
+        forgetpasswordTextView.setOnClickListener { openForgotPasswordActivity() }
     }
 
     private fun loginUser() {
@@ -99,6 +101,11 @@ class LoginActivity : AppCompatActivity() {
     private fun openSignUpActivity() {
         // Mở Activity đăng ký
         val intent = Intent(this, SignUpActivity::class.java)
+        startActivity(intent)
+    }
+    private fun openForgotPasswordActivity() {
+        // Mở Activity đăng ký
+        val intent = Intent(this, ForgotPasswordActivity::class.java)
         startActivity(intent)
     }
 }

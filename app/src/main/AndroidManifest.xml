@@ -37,6 +37,9 @@
             android:name=".Activity.OrderDetailActivity"
             android:exported="false"/>
         <activity
+            android:name=".Activity.ForgotPasswordActivity"
+            android:exported="false"/>
+        <activity
             android:name=".Activity.IntroActivity"
             android:exported="true">
             <intent-filter>
