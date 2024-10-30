@@ -57,21 +57,39 @@
                     app:layout_constraintStart_toStartOf="@+id/fullnameTxt" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <EditText
-                android:id="@+id/editTextText"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="wrap_content"
                 android:layout_margin="16dp"
-                android:background="@color/blackcolor2"
-                android:drawableStart="@drawable/search"
-                android:drawableEnd="@drawable/microphone"
-                android:drawablePadding="8dp"
-                android:ems="10"
-                android:hint="Search Movie..."
-                android:inputType="text"
-                android:padding="12dp"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white" />
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/editTextText"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="1"
+                    android:background="@color/blackcolor2"
+                    android:drawableStart="@drawable/search"
+                    android:drawablePadding="8dp"
+                    android:ems="10"
+                    android:hint="Search Movie..."
+                    android:inputType="text"
+                    android:padding="12dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white" />
+
+                <Button
+                    android:id="@+id/buttonChatbot"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/chatbot"
+                    android:padding="12dp"
+                    android:backgroundTint="@color/white"
+                    android:textColor="@color/white"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="Chatbot" />
+            </LinearLayout>
+
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
